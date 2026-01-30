@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ScrollHint｜スクロール位置でUIを切り替える超軽量JS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="description" content="ScrollHint はスクロール位置に応じて目次・ナビ・CTA を切り替える超軽量 JavaScript ライブラリです。Vanilla JS・1ファイル・後付け可能。">
+
+  <style>
+    /* =========================================
+      Base
+    ========================================= */
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.8;
+      color: #222;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.4;
+    }
+
+    a { color: #0b57d0; text-decoration: none; }
+
+    code, pre {
+      background: #f3f3f3;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    pre {
+      padding: 12px;
+      overflow-x: auto;
+    }
+
+    /* =========================================
+      Header
+    ========================================= */
+    header {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+    }
+
+    header nav a {
+      margin-right: 16px;
+      font-weight: 600;
+    }
+
+    header nav a.is-current {
+      color: #0b57d0;
+      border-bottom: 2px solid #0b57d0;
+    }
+
+    /* =========================================
+      Layout
+    ========================================= */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 96px 16px 0;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 24px;
+    }
+
+    aside {
+      position: sticky;
+      top: 96px;
+      height: fit-content;
+      border-right: 1px solid #eee;
+      padding-right: 16px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 0;
+      color: #555;
+    }
+
+    .toc a.is-current {
+      color: #0b57d0;
+      font-weight: bold;
+    }
+
+    /* =========================================
+      Sections
+    ========================================= */
+    section {
+      padding: 96px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    section.is-active h2 {
+      color: #0b57d0;
+    }
+
+    /* =========================================
+      CTA
+    ========================================= */
+    .cta {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: #0b57d0;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: bold;
+      box-shadow: 0 6px 20px rgba(0,0,0,.15);
+      transition: background .2s ease;
+    }
+
+    .cta.is-secondary {
+      background: #666;
+    }
+
+    /* =========================================
+      Footer
+    ========================================= */
+    footer {
+      margin-top: 120px;
+      padding: 64px 16px;
+      background: #f7f7f7;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <strong style="margin-right:24px;">ScrollHint</strong>
+  <nav>
+    <a href="#what">What</a>
+    <a href="#demo">Demo</a>
+    <a href="#usage">Usage</a>
+    <a href="#wordpress">WordPress</a>
+    <a href="#trouble">Troubles</a>
+    <a href="#about">About</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- TOC -->
+  <aside>
+    <div class="toc">
+      <strong>Contents</strong>
+      <a href="#what">何ができる？</a>
+      <a href="#demo">動作デモ</a>
+      <a href="#usage">基本的な使い方</a>
+      <a href="#wordpress">WordPress導入</a>
+      <a href="#trouble">よくある失敗</a>
+      <a href="#about">制作・依頼</a>
+    </div>
+  </aside>
+
+  <div>
+
+    <section id="what" class="js-section">
+      <h1>ScrollHintで何ができるのか</h1>
+
+      <p>
+        ScrollHint は <strong>「スクロール位置をトリガーにページの状態を切り替える」</strong>
+        ための JavaScript ライブラリです。
+      </p>
+
+      <h3>よくあるWebサイトの「これ」を解決します</h3>
+      <ul>
+        <li>今どこを読んでいるのか分からない</li>
+        <li>CTA をずっと同じ文言で出している</li>
+        <li>ナビの active 切り替えが面倒</li>
+      </ul>
+
+      <h3>ScrollHintを入れると</h3>
+      <ul>
+        <li>📌 目次が自動でハイライトされる</li>
+        <li>🔁 セクションごとに CTA が切り替わる</li>
+        <li>🧭 ヘッダーナビが今の位置を示す</li>
+        <li>🧱 HTML構造はそのまま</li>
+      </ul>
+    </section>
+
+    <section id="demo" class="js-section">
+      <h2>動作デモ（実際にスクロールしてください）</h2>
+      <ul>
+        <li>左の目次がハイライトされます</li>
+        <li>上のナビも自動で切り替わります</li>
+        <li>右下のCTAがセクションで変わります</li>
+      </ul>
+    </section>
+
+    <section id="usage" class="js-section">
+      <h2>基本的な使い方（3ステップ）</h2>
+
+      <h3>① JS を読み込む</h3>
+      <pre><code>&lt;script src="scrollhint.js" defer&gt;&lt;/script&gt;</code></pre>
+
+      <h3>② セクションに class を付ける</h3>
+      <pre><code>&lt;section id="demo" class="js-section"&gt;</code></pre>
+
+      <h3>③ 初期化する</h3>
+      <pre><code>scrollhint({
+  offset: 64,
+  sections: ".js-section",
+  bindTOC: true,
+  tocSelector: ".toc"
+});</code></pre>
+    </section>
+
+    <section id="wordpress" class="js-section">
+      <h2>WordPress への組み込み</h2>
+
+      <h3>functions.php</h3>
+      <pre><code>wp_enqueue_script(
+  'scrollhint',
+  get_template_directory_uri().'/scrollhint.js',
+  [],
+  '1.0',
+  true
+);</code></pre>
+
+      <h3>Gutenberg / Elementor</h3>
+      <ul>
+        <li>セクションに class を指定するだけ</li>
+        <li>HTML構造は変更不要</li>
+      </ul>
+    </section>
+
+    <section id="trouble" class="js-section">
+      <h2>よくある失敗と対処</h2>
+
+      <ul>
+        <li><strong>動かない →</strong> offset 未指定</li>
+        <li><strong>ズレる →</strong> 画像遅延 → refreshNow()</li>
+        <li><strong>本番だけ壊れる →</strong> GTM 再計測</li>
+      </ul>
+
+      <pre><code>instance.refreshNow();</code></pre>
+    </section>
+
+    <section id="about" class="js-section">
+      <h2>制作・開発について</h2>
+
+      <p>
+        ScrollHint は
+        <a href="https://monou.jp" target="_blank">門王（monou.jp）</a>
+        が制作しています。
+      </p>
+
+      <h3>開発依頼を受け付けています</h3>
+      <ul>
+        <li>LP / 記事用 JavaScript</li>
+        <li>WordPress カスタム実装</li>
+        <li>既存サイトの後付け改修</li>
+        <li>CSP / 広告計測対応</li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<a class="cta" href="#about">お問い合わせ</a>
+
+<footer>
+  © 門王(<a href="https://monou.jp">https://monou.jp</a>) / ScrollHint
+</footer>
+
+<script src="../scrollhint.js" defer></script>
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    var cta = document.querySelector('.cta');
+
+    window.instance = scrollhint({
+      offset: 64,
+      sections: ".js-section",
+      bindTOC: true,
+      tocSelector: ".toc",
+      onEnter: function (ctx) {
+        if (ctx.id === "#wordpress") {
+          cta.textContent = "WP導入を見る";
+          cta.classList.remove('is-secondary');
+        }
+      },
+      onLeave: function () {
+        cta.textContent = "お問い合わせ";
+        cta.classList.add('is-secondary');
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
