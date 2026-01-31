@@ -7,83 +7,31 @@
 
   <meta name="description" content="ScrollHint はスクロール位置に応じて目次・ナビ・CTA を切り替える超軽量 JavaScript ライブラリです。Vanilla JS・1ファイル・後付け可能。">
 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* =========================================
-      Base
+      Custom Styles (ScrollHint Specific)
     ========================================= */
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.8;
-      color: #222;
+      padding-top: 56px;
     }
 
-    h1, h2, h3 {
-      line-height: 1.4;
-    }
-
-    a { color: #0b57d0; text-decoration: none; }
-
-    code, pre {
-      background: #f3f3f3;
-      border-radius: 4px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    }
-
-    pre {
-      padding: 12px;
-      overflow-x: auto;
-    }
-
-    /* =========================================
-      Header
-    ========================================= */
-    header {
-      position: fixed;
-      inset: 0 0 auto 0;
-      height: 64px;
-      background: #fff;
-      border-bottom: 1px solid #ddd;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-    }
-
-    header nav a {
-      margin-right: 16px;
-      font-weight: 600;
-    }
-
-    header nav a.is-current {
-      color: #0b57d0;
-      border-bottom: 2px solid #0b57d0;
-    }
-
-    /* =========================================
-      Layout
-    ========================================= */
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 96px 16px 0;
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 24px;
-    }
-
-    aside {
+    .toc-sticky {
       position: sticky;
-      top: 96px;
+      top: 76px;
       height: fit-content;
-      border-right: 1px solid #eee;
-      padding-right: 16px;
     }
 
     .toc a {
       display: block;
-      padding: 6px 0;
+      padding: 4px 0;
       color: #555;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .toc a:hover {
+      color: #0b57d0;
     }
 
     .toc a.is-current {
@@ -91,46 +39,38 @@
       font-weight: bold;
     }
 
-    /* =========================================
-      Sections
-    ========================================= */
     section {
-      padding: 96px 0;
+      padding: 60px 0;
       border-bottom: 1px solid #eee;
     }
 
+    section:last-of-type {
+      border-bottom: none;
+    }
+
+    section.is-active h1,
     section.is-active h2 {
       color: #0b57d0;
     }
 
-    /* =========================================
-      CTA
-    ========================================= */
-    .cta {
+    .cta-floating {
       position: fixed;
-      right: 16px;
-      bottom: 16px;
-      background: #0b57d0;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 999px;
-      font-weight: bold;
-      box-shadow: 0 6px 20px rgba(0,0,0,.15);
-      transition: background .2s ease;
+      right: 20px;
+      bottom: 20px;
+      z-index: 1050;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    .cta.is-secondary {
-      background: #666;
+    pre {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #dee2e6;
     }
 
-    /* =========================================
-      Footer
-    ========================================= */
-    footer {
-      margin-top: 120px;
-      padding: 64px 16px;
-      background: #f7f7f7;
-      text-align: center;
+    code {
+      color: #d63384;
     }
   </style>
 </head>
@@ -138,90 +78,114 @@
 <body>
 
 <header>
-  <strong style="margin-right:24px;">ScrollHint</strong>
-  <nav>
-    <a href="#what">What</a>
-    <a href="#demo">Demo</a>
-    <a href="#usage">Usage</a>
-    <a href="#wordpress">WordPress</a>
-    <a href="#trouble">Troubles</a>
-    <a href="#about">About</a>
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom fixed-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#">ScrollHint</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#what">What</a></li>
+          <li class="nav-item"><a class="nav-link" href="#demo">Demo</a></li>
+          <li class="nav-item"><a class="nav-link" href="#usage">Usage</a></li>
+          <li class="nav-item"><a class="nav-link" href="#wordpress">WordPress</a></li>
+          <li class="nav-item"><a class="nav-link" href="#trouble">Troubles</a></li>
+          <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        </ul>
+      </div>
+    </div>
   </nav>
 </header>
 
-<main>
+<main class="container my-5">
+  <div class="row">
+    <!-- TOC -->
+    <aside class="col-lg-3 d-none d-lg-block">
+      <div class="toc-sticky border-end pe-3">
+        <h5 class="fw-bold mb-3">Contents</h5>
+        <div class="toc">
+          <a href="#what">何ができる？</a>
+          <a href="#demo">動作デモ</a>
+          <a href="#usage">基本的な使い方</a>
+          <a href="#wordpress">WordPress導入</a>
+          <a href="#trouble">よくある失敗</a>
+          <a href="#about">制作・依頼</a>
+        </div>
+      </div>
+    </aside>
 
-  <!-- TOC -->
-  <aside>
-    <div class="toc">
-      <strong>Contents</strong>
-      <a href="#what">何ができる？</a>
-      <a href="#demo">動作デモ</a>
-      <a href="#usage">基本的な使い方</a>
-      <a href="#wordpress">WordPress導入</a>
-      <a href="#trouble">よくある失敗</a>
-      <a href="#about">制作・依頼</a>
-    </div>
-  </aside>
+    <div class="col-lg-9">
+      <section id="what" class="js-section mt-0 pt-0">
+        <h1 class="display-5 fw-bold mb-4">ScrollHintで何ができるのか</h1>
 
-  <div>
+        <p class="lead">
+          ScrollHint は <strong>「スクロール位置をトリガーにページの状態を切り替える」</strong>
+          ための JavaScript ライブラリです。
+        </p>
 
-    <section id="what" class="js-section">
-      <h1>ScrollHintで何ができるのか</h1>
+        <div class="row mt-5">
+          <div class="col-md-6 mb-4">
+            <div class="card h-100 border-0 bg-light">
+              <div class="card-body">
+                <h5 class="card-title fw-bold text-primary">よくある課題を解決</h5>
+                <ul class="mb-0">
+                  <li>今どこを読んでいるのか分からない</li>
+                  <li>CTA をずっと同じ文言で出している</li>
+                  <li>ナビの active 切り替えが面倒</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-4">
+            <div class="card h-100 border-0 bg-light">
+              <div class="card-body">
+                <h5 class="card-title fw-bold text-primary">導入のメリット</h5>
+                <ul class="mb-0">
+                  <li>📌 目次が自動でハイライトされる</li>
+                  <li>🔁 セクションごとに CTA が切り替わる</li>
+                  <li>🧭 ヘッダーナビが今の位置を示す</li>
+                  <li>🧱 HTML構造はそのまま</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <p>
-        ScrollHint は <strong>「スクロール位置をトリガーにページの状態を切り替える」</strong>
-        ための JavaScript ライブラリです。
-      </p>
+      <section id="demo" class="js-section">
+        <h2 class="fw-bold mb-4">動作デモ</h2>
+        <div class="alert alert-info">実際にスクロールして動作を確認してください。</div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item bg-transparent border-0 px-0">✓ 左の目次がハイライトされます（デスクトップ）</li>
+          <li class="list-group-item bg-transparent border-0 px-0">✓ 上のナビも自動で切り替わります</li>
+          <li class="list-group-item bg-transparent border-0 px-0">✓ 右下のCTAがセクションで変わります</li>
+        </ul>
+      </section>
 
-      <h3>よくあるWebサイトの「これ」を解決します</h3>
-      <ul>
-        <li>今どこを読んでいるのか分からない</li>
-        <li>CTA をずっと同じ文言で出している</li>
-        <li>ナビの active 切り替えが面倒</li>
-      </ul>
+      <section id="usage" class="js-section">
+        <h2 class="fw-bold mb-4">基本的な使い方（3ステップ）</h2>
 
-      <h3>ScrollHintを入れると</h3>
-      <ul>
-        <li>📌 目次が自動でハイライトされる</li>
-        <li>🔁 セクションごとに CTA が切り替わる</li>
-        <li>🧭 ヘッダーナビが今の位置を示す</li>
-        <li>🧱 HTML構造はそのまま</li>
-      </ul>
-    </section>
+        <h5 class="fw-bold mt-4">① JS を読み込む</h5>
+        <pre><code>&lt;script src="scrollhint.js" defer&gt;&lt;/script&gt;</code></pre>
 
-    <section id="demo" class="js-section">
-      <h2>動作デモ（実際にスクロールしてください）</h2>
-      <ul>
-        <li>左の目次がハイライトされます</li>
-        <li>上のナビも自動で切り替わります</li>
-        <li>右下のCTAがセクションで変わります</li>
-      </ul>
-    </section>
+        <h5 class="fw-bold mt-4">② セクションに class を付ける</h5>
+        <pre><code>&lt;section id="demo" class="js-section"&gt;</code></pre>
 
-    <section id="usage" class="js-section">
-      <h2>基本的な使い方（3ステップ）</h2>
-
-      <h3>① JS を読み込む</h3>
-      <pre><code>&lt;script src="scrollhint.js" defer&gt;&lt;/script&gt;</code></pre>
-
-      <h3>② セクションに class を付ける</h3>
-      <pre><code>&lt;section id="demo" class="js-section"&gt;</code></pre>
-
-      <h3>③ 初期化する</h3>
-      <pre><code>scrollhint({
+        <h5 class="fw-bold mt-4">③ 初期化する</h5>
+        <pre><code>scrollhint({
   offset: 64,
   sections: ".js-section",
   bindTOC: true,
   tocSelector: ".toc"
 });</code></pre>
-    </section>
+      </section>
 
-    <section id="wordpress" class="js-section">
-      <h2>WordPress への組み込み</h2>
+      <section id="wordpress" class="js-section">
+        <h2 class="fw-bold mb-4">WordPress への組み込み</h2>
 
-      <h3>functions.php</h3>
-      <pre><code>wp_enqueue_script(
+        <h5 class="fw-bold mt-4">functions.php</h5>
+        <pre><code>wp_enqueue_script(
   'scrollhint',
   get_template_directory_uri().'/scrollhint.js',
   [],
@@ -229,56 +193,79 @@
   true
 );</code></pre>
 
-      <h3>Gutenberg / Elementor</h3>
-      <ul>
-        <li>セクションに class を指定するだけ</li>
-        <li>HTML構造は変更不要</li>
-      </ul>
-    </section>
+        <h5 class="fw-bold mt-4">Gutenberg / Elementor</h5>
+        <ul class="mb-0">
+          <li>セクションに class を指定するだけ</li>
+          <li>HTML構造は変更不要</li>
+        </ul>
+      </section>
 
-    <section id="trouble" class="js-section">
-      <h2>よくある失敗と対処</h2>
+      <section id="trouble" class="js-section">
+        <h2 class="fw-bold mb-4">よくある失敗と対処</h2>
 
-      <ul>
-        <li><strong>動かない →</strong> offset 未指定</li>
-        <li><strong>ズレる →</strong> 画像遅延 → refreshNow()</li>
-        <li><strong>本番だけ壊れる →</strong> GTM 再計測</li>
-      </ul>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <div class="p-3 border rounded text-center h-100">
+              <div class="fw-bold text-danger mb-2">動かない</div>
+              <small>offset 未指定</small>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="p-3 border rounded text-center h-100">
+              <div class="fw-bold text-danger mb-2">ズレる</div>
+              <small>画像遅延 → refreshNow()</small>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="p-3 border rounded text-center h-100">
+              <div class="fw-bold text-danger mb-2">本番だけ壊れる</div>
+              <small>GTM 再計測</small>
+            </div>
+          </div>
+        </div>
 
-      <pre><code>instance.refreshNow();</code></pre>
-    </section>
+        <pre class="mt-4"><code>instance.refreshNow();</code></pre>
+      </section>
 
-    <section id="about" class="js-section">
-      <h2>制作・開発について</h2>
+      <section id="about" class="js-section">
+        <h2 class="fw-bold mb-4">制作・開発について</h2>
 
-      <p>
-        ScrollHint は
-        <a href="https://monou.jp" target="_blank">門王（monou.jp）</a>
-        が制作しています。
-      </p>
+        <p>
+          ScrollHint は
+          <a href="https://monou.jp" target="_blank" class="text-decoration-none">門王（monou.jp）</a>
+          が制作しています。
+        </p>
 
-      <h3>開発依頼を受け付けています</h3>
-      <ul>
-        <li>LP / 記事用 JavaScript</li>
-        <li>WordPress カスタム実装</li>
-        <li>既存サイトの後付け改修</li>
-        <li>CSP / 広告計測対応</li>
-      </ul>
-    </section>
+        <div class="card border-primary mt-4">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">開発依頼を受け付けています</h5>
+            <ul class="card-text mb-0">
+              <li>LP / 記事用 JavaScript</li>
+              <li>WordPress カスタム実装</li>
+              <li>既存サイトの後付け改修</li>
+              <li>CSP / 広告計測対応</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
+    </div>
   </div>
 </main>
 
-<a class="cta" href="#about">お問い合わせ</a>
+<a class="btn btn-primary btn-lg rounded-pill cta-floating px-4 py-2" href="#about">お問い合わせ</a>
 
-<footer>
-  © 門王(<a href="https://monou.jp">https://monou.jp</a>) / ScrollHint
+<footer class="bg-light py-5 mt-5 border-top">
+  <div class="container text-center text-muted">
+    <p class="mb-0">© 門王(<a href="https://monou.jp" class="text-decoration-none">https://monou.jp</a>) / ScrollHint</p>
+  </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../scrollhint.js" defer></script>
 <script>
   window.addEventListener('DOMContentLoaded', function () {
-    var cta = document.querySelector('.cta');
+    var cta = document.querySelector('.cta-floating');
 
     window.instance = scrollhint({
       offset: 64,
@@ -288,12 +275,14 @@
       onEnter: function (ctx) {
         if (ctx.id === "#wordpress") {
           cta.textContent = "WP導入を見る";
-          cta.classList.remove('is-secondary');
+          cta.classList.remove('btn-secondary');
+          cta.classList.add('btn-primary');
         }
       },
       onLeave: function () {
         cta.textContent = "お問い合わせ";
-        cta.classList.add('is-secondary');
+        cta.classList.remove('btn-primary');
+        cta.classList.add('btn-secondary');
       }
     });
   });
